@@ -1,13 +1,13 @@
-# load libraries
+# load libraries ####
 library(lubridate)
 library(tidyverse)
 library(tools)
 
-# read in data
+# read in data ####
 data_2017_2021 <- read_csv('raw-data/data_2017_2021.csv')
 data_2022_2023 <- read_csv('raw-data/data_2022_2023.csv')
 
-# clean 2017 - 2021 data
+# clean 2017 - 2021 data ####
 clean_2017_2021 <- data_2017_2021 |> 
   reframe(
     last_name = toTitleCase(tolower(LastName)),
@@ -43,7 +43,7 @@ clean_2017_2021 <- data_2017_2021 |>
     score = Score
   )
 
-# clean 2022 - 2023 data
+# clean 2022 - 2023 data ####
 clean_2022_2023 <- data_2022_2023 |> 
   reframe(
     last_name = toTitleCase(tolower(LastName)),
@@ -77,51 +77,47 @@ clean_2022_2023 <- data_2022_2023 |>
     score = Score
   )
 
-# combine datasets
-final_data <- bind_rows(clean_2017_2021, clean_2022_2023)
-
-# manually clean up names: 
-
-##remove special characters, fix errors, change nicknames
-final_data <- final_data |> 
+# create final dataset ####
+final_data <- bind_rows(clean_2017_2021, clean_2022_2023) |> 
+  # clean names
   mutate(last_name = case_when(
-    last_name == "Masonstephens" ~ "Mason Stephens",
-    last_name == "Modoianu-Zseder" ~ "Modoianu",
-    last_name == "Escandón Marín" ~ "Escandon",
-    last_name == "Fuallen" ~ "Fu Allen",
-    last_name == "Grünberg" ~ "Gruenburg",
-    last_name == "Guimarães" ~ "Guimaraes",
-    last_name == "Hörr" ~ "Horr",
-    last_name == "Villafañe" ~ "Villafane",
+    # remove special characters, fix errors, change nicknames
+    last_name == 'Masonstephens' ~ 'Mason Stephens',
+    last_name == 'Modoianu-Zseder' ~ 'Modoianu',
+    last_name == 'Escandón Marín' ~ 'Escandon',
+    last_name == 'Fuallen' ~ 'Fu Allen',
+    last_name == 'Grünberg' ~ 'Gruenburg',
+    last_name == 'Guimarães' ~ 'Guimaraes',
+    last_name == 'Hörr' ~ 'Horr',
+    last_name == 'Villafañe' ~ 'Villafane',
     TRUE ~ last_name),
-    first_name = if_else(last_name == "Black", "Elsabeth",
+    first_name = if_else(last_name == 'Black', 'Elsabeth',
              case_when(
-               first_name == "Valentin" ~ "Valentina",
-               first_name == "d Amato" ~ "D'Amato",
-               first_name == "Pin-Ju" ~ "Pin Ju",
-               first_name == "Yi-Chun" ~ "Yi Chun",
-               first_name == "Yi-Chen" ~ "Yi Chen",
-               first_name == "Liu Hsiang-Han" ~ "Hsiang Han",
-               first_name == "Hua-Tien" ~ "Hua Tien",
-               first_name == "Ga-Ram" ~ "Garam",
-               first_name == "Matthew" ~ "Matt",
-               first_name == "Fabián" ~ "Fabian",
-               first_name == "Samual" ~ "Sam",
-               first_name == "Yuan-Hsi" ~ "Yuan Hsi",
-               first_name == "Yo-Seop" ~ "Yoseop",
-               first_name %in% c("Chih-Kai", "Chih") ~ "Chih Kai",
-               first_name == "Guan-Yi" ~ "Guan Yi",
-               first_name == "Wei-Sheng" ~ "Wei Sheng",
-               first_name == "Frankie" ~ "Man Hin",
-               TRUE ~ first_name)))
-
-# shorten names and create full name column. also fix
-# apparatus input error from British Commonwealth Games
-final_data <- final_data |> 
+               first_name == 'Valentin' ~ 'Valentina',
+               first_name == 'd Amato' ~ 'D\'Amato',
+               first_name == 'Pin-Ju' ~ 'Pin Ju',
+               first_name == 'Yi-Chun' ~ 'Yi Chun',
+               first_name == 'Yi-Chen' ~ 'Yi Chen',
+               first_name == 'Liu Hsiang-Han' ~ 'Hsiang Han',
+               first_name == 'Hua-Tien' ~ 'Hua Tien',
+               first_name == 'Ga-Ram' ~ 'Garam',
+               first_name == 'Matthew' ~ 'Matt',
+               first_name == 'Fabián' ~ 'Fabian',
+               first_name == 'Samual' ~ 'Sam',
+               first_name == 'Yuan-Hsi' ~ 'Yuan Hsi',
+               first_name == 'Yo-Seop' ~ 'Yoseop',
+               first_name %in% c('Chih-Kai', 'Chih') ~ 'Chih Kai',
+               first_name == 'Guan-Yi' ~ 'Guan Yi',
+               first_name == 'Wei-Sheng' ~ 'Wei Sheng',
+               first_name == 'Frankie' ~ 'Man Hin',
+               TRUE ~ first_name))) |> 
+  # shorten names, create full name column
   mutate(last_name = word(last_name),
          first_name = word(first_name),
+         # fix apparatus input error from British Commonwealth Games
          competition = 
-           if_else(apparatus == "hb", "HB", apparatus),
-         full_name = paste(first_name, last_name, sep = "_"))
-# write final dataset
+           if_else(apparatus == 'hb', 'HB', apparatus),
+         full_name = paste(first_name, last_name, sep = '_'))
+
+# write csv
 write_csv(final_data, 'processed-data/final_data.csv')

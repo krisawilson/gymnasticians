@@ -115,10 +115,13 @@ final_data <- final_data |>
                first_name == "Frankie" ~ "Man Hin",
                TRUE ~ first_name)))
 
-# shorten names and create full name column
+# shorten names and create full name column. also fix
+# apparatus input error from British Commonwealth Games
 final_data <- final_data |> 
   mutate(last_name = word(last_name),
          first_name = word(first_name),
+         competition = 
+           if_else(apparatus == "hb", "HB", apparatus),
          full_name = paste(first_name, last_name, sep = "_"))
 # write final dataset
 write_csv(final_data, 'processed-data/final_data.csv')

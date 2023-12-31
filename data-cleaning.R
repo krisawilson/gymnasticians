@@ -115,7 +115,7 @@ final_data <- bind_rows(clean_2017_2021, clean_2022_2023) |>
   mutate(last_name = word(last_name),
          first_name = word(first_name),
          # fix apparatus input error from British Commonwealth Games
-         competition = if_else(apparatus == 'hb', 'HB', apparatus),
+         apparatus = if_else(apparatus == 'hb', 'HB', apparatus),
          full_name = paste(first_name, last_name, sep = '_'))
 
 # write csv

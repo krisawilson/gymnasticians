@@ -1,0 +1,12 @@
+---
+title: "UCSAS 2024 Data Challenge Report"
+author: "Jonathan Pipping, Kristopher Wilson"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+(put report here)

@@ -114,9 +114,8 @@ mens_full <- mens_full |>
   mutate(across(c("floor_int", "hbars_int", "pbars_int",
                   "horse_int", "rings_int", "vault_int"),
                 ~ if_else(is.na(.), 0, .)))
-rm(horse_df, mens_floor, mens_floor_df, mens_hbars,
-   mens_hbars_df, mens_pbars, mens_pbars_df, mens_vault,
-   mens_vault_df, rings, rings_df, horse)
+rm(horse_df, mens_floor_df, mens_hbars_df, mens_pbars_df, 
+   mens_vault_df, rings_df)
 
 mens_vars <- c(floor_var = floor_var, 
                     hbars_var = hbars_var,
@@ -193,9 +192,8 @@ womens_full <- womens_full |>
   mutate(across(c("floor_int", "bb_int", 
                   "uebars_int", "vault_int"),
                 ~ if_else(is.na(.), 0, .)))
-rm(womens_floor, womens_floor_df, womens_uebars,
-   womens_uebars_df, womens_vault, womens_vault_df,
-   womens_bb, womens_bb_df)
+rm(womens_floor_df, womens_uebars_df, 
+   womens_vault_df, womens_bb_df)
 
 womens_vars <- c(w_floor_var = w_floor_var, 
                  uebars_var = uebars_var,
@@ -219,8 +217,8 @@ rm(mens, womens, bb_var, floor_var, hbars_var, horse_var,
    mens_vault_var, pbars_var, rings_var, uebars_var,
    w_floor_var, womens_vault_var)
 # write data 
-###write_csv(mens_full, "processed-data/mens_intercepts.csv")
-##write_csv(womens_full, "processed-data/womens_intercepts.csv")
+write_csv(mens_full, "processed-data/mens_intercepts.csv")
+write_csv(womens_full, "processed-data/womens_intercepts.csv")
 
 # save enivronment for variances
-##save(list=ls(), file = "processed-data/mlm-env.RData")
+save(list=ls(), file = "processed-data/mlm-env.RData")

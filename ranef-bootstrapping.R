@@ -153,10 +153,10 @@ mens_full <- mens_full |>
             pbars_se = mean(pbars_std_error,na.rm = T),
             still_rings_int = mean(rings_int, na.rm=T),
             still_rings_bias = mean(still_rings_bias, na.rm = T),
-            still_rings_std_error = mean(still_rings_std_error, na.rm = T),
+            still_rings_se = mean(still_rings_std_error, na.rm = T),
             pommel_horse_int = mean(horse_int, na.rm = T),
             pommel_horse_bias = mean(pommel_horse_bias, na.rm = T),
-            pommel_horse_std_error = mean(pommel_horse_std_error,
+            pommel_horse_ser = mean(pommel_horse_std_error,
                                           na.rm = T)) |> ungroup()
 
 # replace the NaNs with the average of zero
@@ -165,6 +165,15 @@ mens_full <- mens_full |>
 rm(hbars_bootstrap, mens_floor_bootstrap, mens_vault_bootstrap, 
    pbars_bootstrap, pommel_horse_boostrap, still_rings_bootstrap)
 
+# for standard errors, replace them with average standard error for that apparatus
+
+mens_full <- mens_full |> 
+  mutate(across(contains("_se") , ~if_else(. == 0, mean(.), .))) |> 
+  mutate(across(contains("_bias") , ~if_else(. == 0, mean(.), .)))
+
+womens_full <- womens_full |> 
+  mutate(across(contains("_se") , ~if_else(. == 0, mean(.), .))) |> 
+  mutate(across(contains("_bias") , ~if_else(. == 0, mean(.), .)))
 # write!
-##write_csv(mens_full, "processed-data/mens_bootstrapped_results.csv")
-##write_csv(womens_full, "processed-data/womens_bootstrapped_results.csv")
+write_csv(mens_full, "processed-data/mens_bootstrapped_results.csv")
+write_csv(womens_full, "processed-data/womens_bootstrapped_results.csv")

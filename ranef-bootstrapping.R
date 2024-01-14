@@ -1,6 +1,7 @@
 # distribution of player effects ----
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(lme4))
+suppressPackageStartupMessages(library(VIM))
 # load env
 load("processed-data/mlm-env.RData")
 
@@ -115,7 +116,7 @@ womens_full <- womens_full |>
 
 # replace the NaNs with the average of zero
 womens_full <- womens_full |> 
-  mutate(across(where(is.numeric), ~ if_else(is.na(.), 0, .)))
+  mutate(across(contains("_int"), ~ if_else(is.na(.), 0, .)))
 rm(bb_bootstrap, uneven_bars_bootstrap, womens_floor_bootstrap, womens_vault_bootstrap)
 
 # join mens data ----
@@ -156,24 +157,31 @@ mens_full <- mens_full |>
             still_rings_se = mean(still_rings_std_error, na.rm = T),
             pommel_horse_int = mean(horse_int, na.rm = T),
             pommel_horse_bias = mean(pommel_horse_bias, na.rm = T),
-            pommel_horse_ser = mean(pommel_horse_std_error,
+            pommel_horse_se = mean(pommel_horse_std_error,
                                           na.rm = T)) |> ungroup()
 
 # replace the NaNs with the average of zero
 mens_full <- mens_full |> 
-  mutate(across(where(is.numeric), ~ if_else(is.na(.), 0, .)))
+  mutate(across(contains("_int"), ~ if_else(is.na(.), 0, .)))
 rm(hbars_bootstrap, mens_floor_bootstrap, mens_vault_bootstrap, 
    pbars_bootstrap, pommel_horse_boostrap, still_rings_bootstrap)
 
-# for standard errors, replace them with average standard error for that apparatus
+# for standard errors and bias, perform knn imputation
+mens_full <- kNN(mens_full, # have to do em manually smh
+                 variable = c("floor_bias", "floor_se",
+                              "hbars_bias", "hbars_se",
+                              "vault_bias", "vault_se",
+                              "pbars_bias", "pbars_se",
+                              "still_rings_bias", "still_rings_se",
+                              "pommel_horse_bias", "pommel_horse_se"),
+                 imp_var = FALSE, useImputedDist = FALSE)
 
-mens_full <- mens_full |> 
-  mutate(across(contains("_se") , ~if_else(. == 0, mean(.), .))) |> 
-  mutate(across(contains("_bias") , ~if_else(. == 0, mean(.), .)))
-
-womens_full <- womens_full |> 
-  mutate(across(contains("_se") , ~if_else(. == 0, mean(.), .))) |> 
-  mutate(across(contains("_bias") , ~if_else(. == 0, mean(.), .)))
+womens_full <- kNN(womens_full, # have to do em manually smh
+                   variable = c("floor_bias", "floor_se",
+                                "uneven_bars_bias", "uneven_bars_se",
+                                "vault_bias", "vault_se",
+                                "bb_bias", "bb_se"),
+                   imp_var = FALSE, useImputedDist = FALSE)
 # write!
 write_csv(mens_full, "processed-data/mens_bootstrapped_results.csv")
 write_csv(womens_full, "processed-data/womens_bootstrapped_results.csv")

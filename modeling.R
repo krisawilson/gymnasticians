@@ -6,9 +6,10 @@ final_data <- read_csv("processed-data/final_data.csv")
 
 # create a dummy var, set to 1 if final round, 0 otherwise
 subset_data <- final_data |> 
+  filter(country == "USA") |> 
   mutate(round_dummy = if_else(grepl("final", round), 1, 0)) |> 
   # get only vars we need
-  select(full_name, country, gender, round_dummy, apparatus, score)
+  select(full_name, gender, round_dummy, apparatus, difficulty, execution, score)
 rm(final_data)
 # filter by gender since the apparatuses differ
 mens <- subset_data |> filter(gender == "M")
@@ -18,7 +19,7 @@ rm(subset_data)
 
 # mens floor
 mens_floor <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = mens, na.action = na.omit, 
   subset = apparatus == "FX")
 
@@ -29,10 +30,9 @@ mens_floor_df <- mens_ranef_floor$full_name |>
   mutate(gymnast = rownames(mens_ranef_floor$full_name)) |> 
   rename(floor_int = `(Intercept)`)
 rm(mens_ranef_floor)
-floor_var <- summary(mens_floor)$varcor$full_name[1]
 # mens horizontal bars
 mens_hbars <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = mens, na.action = na.omit, 
   subset = apparatus == "HB")
 
@@ -43,10 +43,9 @@ mens_hbars_df <- mens_ranef_hbars$full_name |>
   mutate(gymnast = rownames(mens_ranef_hbars$full_name)) |> 
   rename(hbars_int = `(Intercept)`)
 rm(mens_ranef_hbars)
-hbars_var <- summary(mens_hbars)$varcor$full_name[1]
 # mens parallel bars
 mens_pbars <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = mens, na.action = na.omit, 
   subset = apparatus == "PB")
 
@@ -57,10 +56,9 @@ mens_pbars_df <- mens_ranef_pbars$full_name |>
   mutate(gymnast = rownames(mens_ranef_pbars$full_name)) |> 
   rename(pbars_int = `(Intercept)`)
 rm(mens_ranef_pbars)
-pbars_var <- summary(mens_pbars)$varcor$full_name[1]
 # pommel horse
 horse <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = mens, na.action = na.omit, 
   subset = apparatus == "PH")
 
@@ -71,10 +69,9 @@ horse_df <- horse_ranef$full_name |>
   mutate(gymnast = rownames(horse_ranef$full_name)) |> 
   rename(horse_int = `(Intercept)`)
 rm(horse_ranef)
-horse_var <- summary(horse)$varcor$full_name[1]
 # still rings
 rings <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = mens, na.action = na.omit, 
   subset = apparatus == "SR")
 
@@ -85,10 +82,9 @@ rings_df <- ranef_rings$full_name |>
   mutate(gymnast = rownames(ranef_rings$full_name)) |> 
   rename(rings_int = `(Intercept)`)
 rm(ranef_rings)
-rings_var <- summary(rings)$varcor$full_name[1]
 # mens vault
 mens_vault <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = mens, na.action = na.omit, 
   subset = apparatus %in% c("VT", "VT1", "VT2"))
 
@@ -99,7 +95,6 @@ mens_vault_df <- mens_ranef_vault$full_name |>
   mutate(gymnast = rownames(mens_ranef_vault$full_name)) |> 
   rename(vault_int = `(Intercept)`)
 rm(mens_ranef_vault)
-mens_vault_var <- summary(mens_vault)$varcor$full_name[1]
 # join mens data ####
 mens_full <- mens_floor_df |> 
   full_join(mens_hbars_df, by = "gymnast") |> 
@@ -109,25 +104,11 @@ mens_full <- mens_floor_df |>
   full_join(mens_vault_df, by = "gymnast") |> 
   select(gymnast, floor_int, hbars_int, pbars_int,
          horse_int, rings_int, vault_int)
-# replace NAs with the mean of zero
-mens_full <- mens_full |> 
-  mutate(across(c("floor_int", "hbars_int", "pbars_int",
-                  "horse_int", "rings_int", "vault_int"),
-                ~ if_else(is.na(.), 0, .)))
-rm(horse_df, mens_floor_df, mens_hbars_df, mens_pbars_df, 
-   mens_vault_df, rings_df)
-
-mens_vars <- c(floor_var = floor_var, 
-                    hbars_var = hbars_var,
-                    horse_var = horse_var,
-                    pbars_var = pbars_var,
-                    rings_var = rings_var, 
-                    mens_vault_var = mens_vault_var)
 
 # womens modeling ####
 # womens floor
 womens_floor <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = womens, na.action = na.omit, 
   subset = apparatus == "FX")
 
@@ -138,10 +119,9 @@ womens_floor_df <- womens_ranef_floor$full_name |>
   mutate(gymnast = rownames(womens_ranef_floor$full_name)) |> 
   rename(floor_int = `(Intercept)`)
 rm(womens_ranef_floor)
-w_floor_var <- summary(womens_floor)$varcor$full_name[1]
 # womens uneven bars
 womens_uebars <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = womens, na.action = na.omit, 
   subset = apparatus %in% c("UB", "UE"))
 
@@ -152,10 +132,9 @@ womens_uebars_df <- womens_ranef_uebars$full_name |>
   mutate(gymnast = rownames(womens_ranef_uebars$full_name)) |> 
   rename(uebars_int = `(Intercept)`)
 rm(womens_ranef_uebars)
-uebars_var <- summary(womens_uebars)$varcor$full_name[1]
 # womens balance beam
 womens_bb <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = womens, na.action = na.omit, 
   subset = apparatus == "BB")
 
@@ -166,10 +145,9 @@ womens_bb_df <- womens_ranef_bb$full_name |>
   mutate(gymnast = rownames(womens_ranef_bb$full_name)) |> 
   rename(bb_int = `(Intercept)`)
 rm(womens_ranef_bb)
-bb_var <- summary(womens_bb)$varcor$full_name[1]
 # womens vault ####
 womens_vault <- lmer(
-  score ~ round_dummy + (1 | full_name),
+  execution ~ difficulty + round_dummy + (1 | full_name),
   data = womens, na.action = na.omit, 
   subset = apparatus %in% c("VT", "VT1", "VT2"))
 
@@ -180,45 +158,87 @@ womens_vault_df <- womens_ranef_vault$full_name |>
   mutate(gymnast = rownames(womens_ranef_vault$full_name)) |> 
   rename(vault_int = `(Intercept)`)
 rm(womens_ranef_vault)
-womens_vault_var <- summary(womens_vault)$varcor$full_name[1]
 # join womens data ####
 womens_full <- womens_floor_df |> 
   full_join(womens_uebars_df, by = "gymnast") |> 
   full_join(womens_bb_df, by = "gymnast") |> 
   full_join(womens_vault_df, by = "gymnast") |> 
   select(gymnast, floor_int, bb_int, uebars_int, vault_int)
-# replace NAs with the mean of zero
+
+# add mean difficulty ----
+womens_bb_diff <- womens |> 
+  filter(apparatus == "BB") |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_bb = mean(difficulty, na.rm=T),
+            sd_diff_bb = sd(difficulty, na.rm=T))
+womens_fx_diff <- womens |> 
+  filter(apparatus == "FX") |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_floor = mean(difficulty, na.rm=T),
+            sd_diff_floor = sd(difficulty, na.rm=T))
+womens_ue_diff <- womens |> 
+  filter(apparatus %in% c("UB", "UE")) |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_uneven_bars = mean(difficulty, na.rm=T),
+            sd_diff_uneven_bars = sd(difficulty, na.rm=T))
+womens_vault_diff <- womens |> 
+  filter(apparatus %in% c("VT", "VT1", "VT2")) |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_vault = mean(difficulty, na.rm=T),
+            sd_diff_vault = sd(difficulty, na.rm=T))
 womens_full <- womens_full |> 
-  mutate(across(c("floor_int", "bb_int", 
-                  "uebars_int", "vault_int"),
-                ~ if_else(is.na(.), 0, .)))
-rm(womens_floor_df, womens_uebars_df, 
-   womens_vault_df, womens_bb_df)
+  left_join(womens_bb_diff, by = join_by(gymnast == full_name)) |> 
+  left_join(womens_fx_diff, by = join_by(gymnast == full_name)) |> 
+  left_join(womens_ue_diff, by = join_by(gymnast == full_name)) |> 
+  left_join(womens_vault_diff, by = join_by(gymnast == full_name))
+rm(womens_bb_diff, womens_fx_diff, womens_ue_diff, womens_vault_diff,
+   mens_vars, womens_vars)
 
-womens_vars <- c(w_floor_var = w_floor_var, 
-                 uebars_var = uebars_var,
-                 bb_var = bb_var,
-                 womens_vault_var = womens_vault_var)
-
-# add country back ####
-mens_full <- left_join(mens_full, mens,
-                       by = join_by(gymnast == full_name),
-                       multiple = "first",
-                       unmatched = "drop") |> 
-  select(gymnast, country, contains("_int"))
-womens_full <- left_join(womens_full, womens,
-                       by = join_by(gymnast == full_name),
-                       multiple = "first",
-                       unmatched = "drop") |> 
-  select(gymnast, country, contains("_int"))
-
-# remove stuff
-rm(mens, womens, bb_var, floor_var, hbars_var, horse_var,
-   mens_vault_var, pbars_var, rings_var, uebars_var,
-   w_floor_var, womens_vault_var)
+# mens
+hb_diff <- mens |> 
+  filter(apparatus == "HB") |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_hb = mean(difficulty, na.rm=T),
+            sd_diff_hb = sd(difficulty, na.rm=T))
+pb_diff <- mens |> 
+  filter(apparatus == "PB") |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_pb = mean(difficulty, na.rm=T),
+            sd_diff_pb = sd(difficulty, na.rm=T))
+mens_fx_diff <- mens |> 
+  filter(apparatus == "FX") |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_fx = mean(difficulty, na.rm=T),
+            sd_diff_fx = sd(difficulty, na.rm=T))
+pommel_horse_diff <- mens |> 
+  filter(apparatus == "PH") |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_ph = mean(difficulty, na.rm=T),
+            sd_diff_ph = sd(difficulty, na.rm=T))
+still_rings_diff <- mens |> 
+  filter(apparatus == "SR") |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_sr = mean(difficulty, na.rm=T),
+            sd_diff_sr = sd(difficulty, na.rm=T))
+mens_vault_diff <- mens |> 
+  filter(apparatus %in% c("VT", "VT1", "VT2")) |> 
+  group_by(full_name) |> 
+  summarize(avg_diff_vault = mean(difficulty, na.rm=T),
+            sd_diff_vault = sd(difficulty, na.rm=T))
+mens_full <- mens_full |> 
+  left_join(hb_diff, by = join_by(gymnast == full_name)) |> 
+  left_join(mens_fx_diff, by = join_by(gymnast == full_name)) |> 
+  left_join(pb_diff, by = join_by(gymnast == full_name)) |> 
+  left_join(mens_vault_diff, by = join_by(gymnast == full_name)) |> 
+  left_join(pommel_horse_diff, by = join_by(gymnast == full_name)) |> 
+  left_join(still_rings_diff, by = join_by(gymnast == full_name))
+rm(hb_diff, pb_diff, pommel_horse_diff, mens_vault_diff,
+   mens_fx_diff, still_rings_diff)
 # write data 
 write_csv(mens_full, "processed-data/mens_intercepts.csv")
 write_csv(womens_full, "processed-data/womens_intercepts.csv")
 
-# save enivronment for variances
+# save environment for models
+rm(horse_df, mens_floor_df, mens_hbars_df, mens_pbars_df, mens_vault_df,
+   rings_df, womens_bb_df, womens_floor_df, womens_uebars_df, womens_vault_df)
 save(list=ls(), file = "processed-data/mlm-env.RData")

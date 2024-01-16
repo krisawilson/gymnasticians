@@ -25,6 +25,8 @@ event <- function(data, event_name, rep = 1000) {
   
   # loop through iterations
   for (i in 1:rep) {
+    # set seed
+    set.seed(i)
     # column names
     column_names <- paste(event_name, c('_mean_diff', '_sd_diff', '_mean_exec', '_sd_exec'), sep = '')
     # calculate difficulty

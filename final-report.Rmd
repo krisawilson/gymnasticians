@@ -6,7 +6,57 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = F)
+library(tidyverse)
+load("C:/gymnasticians/processed-data/mlm-env.RData")
+womens_results <- read_csv("processed-data/womens_bootstrapped_results.csv")
+mens_results <- read_csv("processed-data/mens_bootstrapped_results.csv")
 ```
 
-(put report here)
+## Executive Summary
+
+The goal of this data challenge is to identify the group of five (5) athletes who will enable the Team USA Olympic Men’s and Women’s Artistic Gymnastics teams to optimize success in Paris 2024. We are tasked with developing an analytics model that can be used to identify and compare the expected medal count in the 8 medal events for men and the 6 medal events for the women.
+
+Our approach to this problem consisted of two main parts:
+
+- develop a statistical model that predicts execution score for a given apparatus as a function of the round (final or qualifying), the difficulty, and the athlete. 
+
+- perform a combinatoral simulation with potential team members, selecting the lineup that scores the highest. While this is not directly computing the expected medal count, it focuses on what the Team USA can control.
+
+## Introduction
+
+The goal of this data challenge is to identify the group of five (5) athletes who will enable the Team USA Olympic Men’s and Women’s Artistic Gymnastics teams to optimize success in Paris 2024. We are tasked with developing an analytics model that can be used to identify and compare the expected medal count in the 8 medal events for men (team all-around, individual all-around, floor exercise, pommel horse, still rings, vault, parallel bars, and high bar) and 6 medal events for the women (team all-around, individual all-around, vault, uneven bars, balance beam, and floor exercise). 
+
+The problem of choosing a team is complicated by the structure of the Olympic competition. For both the men and women, the athletes first compete in a qualifying round in which their scores are used to determine advancement of teams (i.e., countries) to the team all-around final and individuals to the individual all-around final and apparatus finals. In qualifying, 4 of the 5 athletes on each team compete on each apparatus, so not every athlete will compete in all apparatus. The athletes representing countries who did not qualify a full team may participate on all apparatus in the qualifying round. Furthermore, The top 8 teams in qualifying advance to the team final based on the sum of the top 3 out of 4 scores on each apparatus (“4 up, 3 count”). Athletes must compete on all apparatus in qualifying to be eligible for the individual all-around final. The top 24 athletes qualify for the individual all-around final, with a maximum of two gymnasts per country. The top 8 athletes on each apparatus qualify for the final in that apparatus, again with a maximum of 2 gymnasts per country.
+
+In the team all-around final, the medalists are determined by the sum of the 3 scores on each apparatus (“3 up, 3 count”). An athlete’s scores in the team all-around final have no effect on their scores in the individual all-around final, and in the individual apparatus finals, all previous scores from qualifying, the team all-around final, and the individual all-around final are thrown out.
+
+## Data
+
+Data from major domestic and international gymnastics competitions from the seasons leading up to the 2020 Tokyo and 2024 Paris Olympics was provided. It should be noted that the Code of Points scoring system is changed each Olympic cycle, so this was a wrinkle that was taken into account appropriately during the modeling and analysis. 
+
+An important data cleaning step included creation of a consistent naming system. Oftentimes, athletes at domestic or regional events (e.g., Asian Games, USA Gymnastics National Championships) will use given names or nicknames, as opposed to their full or legal name that is used at international competitions like the World Championships or Olympics. Research was done to first ensure that these instances were, in fact, the same person, then convert one instance to the other (for example, converting *"Simone Arianne Biles"* to *"Simone Biles"*).
+
+Feature engineering methods include first subsetting the data to include USA competitors only. There are various benefits and drawbacks to this approach. We decided to focus on USA athletes to control for variation between countries, resulting in a more powerful statistical model. Moreover, the objective--identifying a set of athletes to optimize Team USA's medal count--is independent of the performance of other countries. Our goal is not to scheme or strategize around certain countries strengths' or certain athletes; it's to develop a model that allows Team USA to perform the best. Next, we created a binary indicator variable that took on the value of one (1) if an observation occurred in a final round (team or all-around), and zero (0) otherwise. This allowed us to determine whether there is a round effect: that is, is there evidence athletes, on average, perform better in the final round than they do in the qualifying round? The answer to this question will assist us in determining whether having an athlete sit through qualifying, then competing in the finals, on average, is an optimal strategy.
+
+## Methods
+
+In order to capture or quantify the effects of individual athletes competing in a particular apparatus, we first fit a mixed effects model (also known as a hierarchical or multilevel model), regressing execution score for a given apparatus as a function of the round (final or qualifying), the difficulty, and the athlete. The model takes the form:
+
+$E_i = \beta_0 + \beta_1 (\text{round}) + \beta_2 (\text{difficulty}) + \alpha_{a[i]}$, where 
+
+- *i* is the apparatus.
+
+- *round* is a binary indicator taking on the value of 1 for final round (team or all-around), and 0 otherwise
+
+- *difficulty* represents the difficulty score
+
+- $\alpha_{a[i]}$ represents the effect of gymnast *a* on apparatus *i*. This allows us to account for gymnasts directly in the model, as we observe a distribution of gymnasts, leveraging the given performances (the data) to provide an estimate of an individual gymnast's effect.
+
+Gymnast coefficients vary according to their own model, which follows a normal distribution with mean zero (0) and group variance $\alpha_a:$ $\alpha_a \sim N(0, \sigma^2_a)$
+
+## Results
+
+## Conclusion
+
+## Acknowledgements
